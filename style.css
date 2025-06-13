@@ -21,6 +21,15 @@ body {
   background-position: center center;
 }
 
+.symbol.animate img {
+  animation: pulse 0.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
 
 
 #jackpot-video-container {
