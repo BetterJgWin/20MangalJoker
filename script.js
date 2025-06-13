@@ -1,9 +1,92 @@
-const symbols = ["animeto.jpg", "bika.jpg", "prascho.jpg", "zaeka.jpg"];
+const symbols = [
+  "animeto.jpg", "animeto.jpg", "animeto.jpg", "animeto.jpg",
+  "bika.jpg", "bika.jpg", "bika.jpg", "bika.jpg",
+  "prascho.jpg", "prascho.jpg", "prascho.jpg", "prascho.jpg",
+  "zaeka.jpg", "zaeka.jpg", "zaeka.jpg", "zaeka.jpg",
+  "wild.png", // само 1 път - много по-малък шанс
+];
+
+function getRandomSymbol() {
+  const index = Math.floor(Math.random() * symbols.length);
+  return symbols[index];
+}
+
+const wildSymbol = "wild.png"
+const scatterMusic = document.getElementById('scatter-music');
+
+
+
+
+function checkWinningLines(matrix, paylines) {
+  let totalWin = 0;
+  const matchedLines = [];
+
+  paylines.forEach((line, index) => {
+    const symbolsInLine = line.map((row, col) => matrix[row][col]);
+
+    // Опитваме се да открием най-честия не-wild символ, за да го използваме за сравнение
+    const nonWilds = symbolsInLine.filter(sym => sym !== wildSymbol);
+    if (nonWilds.length === 0) return; // няма смисъл ако всички са wild
+
+    const targetSymbol = nonWilds[0]; // взимаме първия не-wild за сравнение
+
+    // Броим колко съвпадения има (вкл. wild)
+    let matchCount = 0;
+    for (let sym of symbolsInLine) {
+      if (sym === targetSymbol || sym === wildSymbol) {
+        matchCount++;
+      } else {
+        break; // прекъсваме при първото несъвпадение
+      }
+    }
+    if (symbolsInLine.every(sym => sym === wildSymbol)) {
+  totalWin += 100; // или друга стойност за 3 wild-а
+  matchedLines.push({ lineIndex: index, matchCount: 3, symbol: wildSymbol });
+}
+
+    if (matchCount >= 3) {
+      totalWin += matchCount * 10; // може да нагласим множителя
+      matchedLines.push({ lineIndex: index, matchCount, symbol: targetSymbol });
+    }
+  });
+
+  return { totalWin, matchedLines };
+}
+
+
+
+
+
+
+
 
 updateDisplayedBet();
 localStorage.removeItem('balance');
 let balance = localStorage.getItem('balance') || 1000;
 updateBalance();
+
+function startScatterMode() {
+  document.body.classList.add("scattering");
+
+  bgMusic.pause();
+  scatterMusic.currentTime = 0;
+  scatterMusic.play();
+}
+
+function stopScatterMode() {
+  document.body.classList.remove("scattering");
+
+  scatterMusic.pause();
+  bgMusic.currentTime = 0;
+  bgMusic.play();
+}
+
+
+
+
+
+
+
 
 function updateBalance() {
   document.getElementById('balance').textContent = `Баланс: ${balance} лв.`;
@@ -30,6 +113,9 @@ function showJackpotVideo() {
 
 
 function spin() {
+
+  // Премахване на предишните win-box рамки
+  document.querySelectorAll('.win-box').forEach(box => box.remove());
 
   const denom = parseFloat(document.getElementById("denomination").value);
   const bet = parseInt(document.getElementById("bet").value);
@@ -186,55 +272,117 @@ function checkWin(middleRowSymbols, totalBet) {
     }
   });
 
+const middleRow = grid[1]; // ред 1 е средната хоризонтала
+const scatterCount = middleRow.filter(cell => cell.name === "scatter.png").length;
+
+if (scatterCount >= 3) {
+  startScatterMode();
+  setTimeout(() => {
+    stopScatterMode();
+  }, 10000);
+}
+
+
+
+
+
   const winningLines = [];
 
   // Хоризонтали
-  for (let i = 0; i < 3; i++) {
-    let combo = 1;
-    const first = grid[i][0].name;
-    for (let j = 1; j < 5; j++) {
-      if (grid[i][j].name === first) combo++;
-      else break;
+// Хоризонтали - Wild печели само ако са поне 3 Wild-а поред
+for (let i = 0; i < 3; i++) {
+  const row = grid[i];
+  let matchCount = 1;
+  let firstSymbol = null;
+
+  for (let j = 0; j < 5; j++) {
+    const current = row[j].name;
+
+    if (j === 0) {
+      if (current === wildSymbol) {
+        // Потърси първия не-wild символ след първия wild
+        for (let k = 1; k < 5; k++) {
+          if (row[k].name !== wildSymbol) {
+            firstSymbol = row[k].name;
+            break;
+          }
+        }
+        // Ако няма не-wild символ – линията е само от wild
+        if (!firstSymbol) firstSymbol = wildSymbol;
+      } else {
+        firstSymbol = current;
+      }
     }
-    if (combo >= 3) {
-      winningLines.push({
-        elements: grid[i].slice(0, combo).map(cell => cell.el),
-        count: combo,
-        symbol: first
-      });
+
+    if (j > 0) {
+      if (row[j].name === firstSymbol || row[j].name === wildSymbol) {
+        matchCount++;
+      } else {
+        break;
+      }
     }
   }
+
+  if (matchCount >= 3) {
+    winningLines.push({
+      elements: row.slice(0, matchCount).map(cell => cell.el),
+      count: matchCount,
+      symbol: firstSymbol
+    });
+  }
+}
+
+
 
   // Диагонал ↘
-  let d1combo = 1;
-  const d1first = grid[0][0].name;
+  // Диагонал ↘
+let d1Count = 1;
+let d1First = grid[0][0].name;
+if (d1First === wildSymbol) {
   for (let i = 1; i < 5; i++) {
-    if (grid[i % 3][i].name === d1first) d1combo++;
-    else break;
+    const next = grid[i % 3][i].name;
+    if (d1First === wildSymbol && next !== wildSymbol) {
+      d1First = next;
+    }
   }
-  if (d1combo >= 3) {
-    winningLines.push({
-      elements: Array.from({ length: d1combo }, (_, i) => grid[i % 3][i].el),
-      count: d1combo,
-      symbol: d1first
-    });
-  }
+}
+for (let i = 1; i < 5; i++) {
+  const current = grid[i % 3][i].name;
+  if (current === d1First || current === wildSymbol) d1Count++;
+  else break;
+}
+if (d1Count >= 3) {
+  winningLines.push({
+    elements: Array.from({ length: d1Count }, (_, i) => grid[i % 3][i].el),
+    count: d1Count,
+    symbol: d1First
+  });
+}
 
-  // Диагонал ↙
-  let d2combo = 1;
-  const d2first = grid[2][0].name;
+// Диагонал ↙
+let d2Count = 1;
+let d2First = grid[2][0].name;
+if (d2First === wildSymbol) {
   for (let i = 1; i < 5; i++) {
-    const r = 2 - (i % 3);
-    if (grid[r][i].name === d2first) d2combo++;
-    else break;
+    const next = grid[(2 - i + 3) % 3][i].name;
+    if (d2First === wildSymbol && next !== wildSymbol) {
+      d2First = next;
+    }
   }
-  if (d2combo >= 3) {
-    winningLines.push({
-      elements: Array.from({ length: d2combo }, (_, i) => grid[2 - (i % 3)][i].el),
-      count: d2combo,
-      symbol: d2first
-    });
-  }
+}
+for (let i = 1; i < 5; i++) {
+  const current = grid[(2 - i + 3) % 3][i].name;
+  if (current === d2First || current === wildSymbol) d2Count++;
+  else break;
+}
+if (d2Count >= 3) {
+  winningLines.push({
+    elements: Array.from({ length: d2Count }, (_, i) => grid[(2 - i + 3) % 3][i].el),
+    count: d2Count,
+    symbol: d2First
+  });
+}
+
 
   // Показване на печалби
   if (winningLines.length > 0) {
@@ -289,8 +437,39 @@ function checkWin(middleRowSymbols, totalBet) {
   }
 }
 
+function isWinningCombination(symbolsRow) {
+  const [s1, s2, s3] = symbolsRow;
 
+  // Ако всички са еднакви (например "animeto.jpg", "animeto.jpg", "animeto.jpg")
+  if (s1 === s2 && s2 === s3) return true;
 
+  // Ако има wild символ, който замества друг символ:
+  // Wild замества всеки символ, така че комбинация с wild и два еднакви символа е печеливша
+  if (
+    (s1 === s2 && s3 === wildSymbol) ||
+    (s1 === s3 && s2 === wildSymbol) ||
+    (s2 === s3 && s1 === wildSymbol)
+  ) return true;
+
+  // Ако има два wild символа и третият не е scatter
+  if (
+    (s1 === wildSymbol && s2 === wildSymbol && s3 !== scatterSymbol) ||
+    (s1 === wildSymbol && s3 === wildSymbol && s2 !== scatterSymbol) ||
+    (s2 === wildSymbol && s3 === wildSymbol && s1 !== scatterSymbol)
+  ) return true;
+
+  return false;
+}
+
+function getSymbolDisplay(symbol) {
+  if (symbol === wildSymbol) {
+    return `<span style="color: orange; font-weight: bold;">${symbol}</span>`;
+  } else if (symbol === scatterSymbol) {
+    return `<span style="color: gold; font-weight: bold;">${symbol}</span>`;
+  } else {
+    return symbol;
+  }
+}
 
 
 
