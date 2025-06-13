@@ -3,7 +3,7 @@ const symbols = [
   "bika.jpg", "bika.jpg", "bika.jpg", "bika.jpg",
   "prascho.jpg", "prascho.jpg", "prascho.jpg", "prascho.jpg",
   "zaeka.jpg", "zaeka.jpg", "zaeka.jpg", "zaeka.jpg",
-  "wild.png", // само 1 път - много по-малък шанс
+  "wild-win.gif", // само 1 път - много по-малък шанс
 ];
 
 function getRandomSymbol() {
@@ -11,7 +11,7 @@ function getRandomSymbol() {
   return symbols[index];
 }
 
-const wildSymbol = "wild.png"
+const wildSymbol = "wild-win.gif"
 const scatterMusic = document.getElementById('scatter-music');
 
 
@@ -233,7 +233,7 @@ function createColumns() {
 
 
 function showJackpotScreen(currentBet) {
-  const jackpotAmount = currentBet * 100;
+  const jackpotAmount = currentBet * 1000;
   balance += jackpotAmount;
   updateBalance();
 
