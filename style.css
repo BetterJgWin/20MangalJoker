@@ -5,6 +5,24 @@ body {
   font-family: sans-serif;
 }
 
+.wild {
+  filter: drop-shadow(0 0 5px gold);
+  animation: glow 1s infinite alternate;
+}
+@keyframes glow {
+  from { transform: scale(1); }
+  to { transform: scale(1.1); }
+}
+
+body {
+  background-image: url('assets/bg.png');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+
+
 #jackpot-video-container {
   position: fixed;
   top: 0;
