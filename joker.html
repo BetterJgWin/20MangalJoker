@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <title>20 Mangal Joker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h2><span id="balance">1000 лв</span></h2>
+
+  <h1>20 Mangal Joker</h1>
+  <div class="slot-container">
+    <div id="slot-machine"></div>
+  </div>
+  <div class="controls">
+  <select id="denomination" onchange="updateDisplayedBet()">
+  <option value="0.10">0.10 лв.</option>
+  <option value="0.50">0.50 лв.</option>
+  <option value="1">1 лв.</option>
+  <option value="2">2 лв.</option>
+  <option value="5">5 лв.</option>
+  <option value="10">10 лв.</option>
+  <option value="20">20 лв.</option>
+  <option value="50">50 лв.</option>
+</select>
+<button onclick="location.href='index.html'" style="position: absolute; top: 10px; left: 10px;">⬅ Назад</button>
+
+<input id="bet" type="number" value="1" min="1" max="10" onchange="updateDisplayedBet()">
+<div id="total-bet-display">Залог: 0.10 лв.</div>
+</div>
+<audio id="scatter-music" src="assets/scatter.mp3"></audio>
+  <button onclick="spin()">Завърти</button>
+  <script src="joker.js"></script>
+  <div id="jackpot-video-container" style="display: none;">
+  <video id="jackpot-video" autoplay muted playsinline>
+    <source src="jackpot.mp4" type="video/mp4">
+    Вашият браузър не поддържа видео.
+  </video>
+</div>
+<img id="win-gif" src="assets/wild-win.gif" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 999;">
+
+</body>
+</html>
